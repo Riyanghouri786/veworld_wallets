@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import SkeletonLoader from "./components/SkeletonLoader";
 import { AiOutlineCopy, AiOutlineSend } from "react-icons/ai";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
   const router = useRouter();
@@ -16,40 +17,53 @@ const Dashboard = () => {
 
   const [transactions, setTransactions] = useState([]);
 
-useEffect(() => {
-  const fetchWallet = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/wallet/connect");
-      const data = await res.json();
+  useEffect(() => {
+    const fetchWallet = async () => {
+      setLoading(true);
+      try {
+        // Step 1: Connect wallet → get address
+        const res = await fetch("/api/wallet/connect");
+        const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "Failed to fetch wallet");
+        if (!res.ok) throw new Error(data.error || "Failed to fetch wallet");
 
-      setWallet({
-        address: data.address,
-        vetBalance: data.balance,
-        b3trBalance: data.b3trBalance,
-      });
+        // Step 2: Fetch balances
+        const balRes = await fetch("/api/wallet/balance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: data.address }),
+        });
+        const balData = await balRes.json();
 
-      // You can fetch real transactions here as well
-      setTransactions([
-        { id: 1, type: "Sent", token: "VET", amount: 10, to: "0xabc..." },
-        { id: 2, type: "Received", token: "B3TR", amount: 50, from: "0xdef..." },
-      ]);
-    } catch (err) {
-      console.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (!balRes.ok) throw new Error(balData.error || "Failed to fetch balances");
 
-  fetchWallet();
-}, []);
+        setWallet({
+          address: data.address,
+          vetBalance: balData.vetBalance,
+          b3trBalance: balData.b3trBalance,
+        });
 
+        // Fake transactions
+        setTransactions([
+          { id: 1, type: "Sent", token: "VET", amount: 10, to: "0xabc..." },
+          { id: 2, type: "Received", token: "B3TR", amount: 50, from: "0xdef..." },
+        ]);
+
+        toast.success("Wallet connected successfully");
+      } catch (err) {
+        console.error(err.message);
+        toast.error(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWallet();
+  }, []);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(wallet.address);
-    alert("Address copied!");
+    navigator.clipboard.writeText(wallet.address.toLowerCase());
+    toast.success("Address copied to clipboard");
   };
 
   return (
@@ -94,7 +108,10 @@ useEffect(() => {
 
         {/* Send Button */}
         <button
-          onClick={() => router.push("/send")}
+          onClick={() => {
+            toast("Redirecting to send page ✈️");
+            router.push("/send");
+          }}
           className="mt-4 md:mt-0 ml-0 md:ml-6 p-3 bg-white text-blue-600 rounded-xl hover:bg-white/90 transition shadow-lg flex items-center justify-center"
         >
           <AiOutlineSend size={24} />

@@ -14,8 +14,11 @@ export async function POST(req) {
       );
     }
 
+    // ✅ Normalize address (uppercase for API)
+    const normalizedAddress = address.toLowerCase();
+
     // ✅ Check cache first
-    const cached = CACHE.get(address);
+    const cached = CACHE.get(normalizedAddress);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       return NextResponse.json(cached.data);
     }
@@ -24,7 +27,7 @@ export async function POST(req) {
     let response;
     try {
       response = await fetch(
-        `https://explore.vechain.org/api/accounts/${address}`
+        `https://explore.vechain.org/api/accounts/${normalizedAddress}`
       );
     } catch (networkErr) {
       console.error("🌐 Network error:", networkErr);
@@ -85,13 +88,13 @@ export async function POST(req) {
     }
 
     const result = {
-      address,
+      address: normalizedAddress,
       vetBalance: Number(vetBalance.toFixed(4)),
       b3trBalance: Number(b3trBalance.toFixed(4)),
     };
 
     // ✅ Store in cache
-    CACHE.set(address, { data: result, timestamp: Date.now() });
+    CACHE.set(normalizedAddress, { data: result, timestamp: Date.now() });
 
     return NextResponse.json(result);
   } catch (err) {
