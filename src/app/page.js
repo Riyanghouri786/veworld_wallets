@@ -1,103 +1,135 @@
-import Image from "next/image";
+"use client";
+import React, { useState, useEffect } from "react";
+import SkeletonLoader from "./components/SkeletonLoader";
+import { AiOutlineCopy, AiOutlineSend } from "react-icons/ai";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
+const Dashboard = () => {
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [wallet, setWallet] = useState({
+    address: "",
+    vetBalance: 0,
+    b3trBalance: 0,
+  });
+
+  const [transactions, setTransactions] = useState([]);
+
+useEffect(() => {
+  const fetchWallet = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/wallet/connect");
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to fetch wallet");
+
+      setWallet({
+        address: data.address,
+        vetBalance: data.balance,
+        b3trBalance: data.b3trBalance,
+      });
+
+      // You can fetch real transactions here as well
+      setTransactions([
+        { id: 1, type: "Sent", token: "VET", amount: 10, to: "0xabc..." },
+        { id: 2, type: "Received", token: "B3TR", amount: 50, from: "0xdef..." },
+      ]);
+    } catch (err) {
+      console.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchWallet();
+}, []);
+
+
+  const copyAddress = () => {
+    navigator.clipboard.writeText(wallet.address);
+    alert("Address copied!");
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
+      {/* Wallet Card */}
+      <div className="bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl shadow-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center text-white transition-transform hover:scale-[1.01]">
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-bold text-xl md:text-2xl tracking-wide">Wallet Address</h2>
+            <button
+              onClick={copyAddress}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition"
+            >
+              <AiOutlineCopy size={20} />
+            </button>
+          </div>
+          {loading ? (
+            <SkeletonLoader width="100%" height="1.5rem" className="mt-2 bg-white/30" />
+          ) : (
+            <p className="mt-1 text-sm md:text-base break-all">{wallet.address}</p>
+          )}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <div className="flex gap-4 mt-4">
+            <div className="bg-white/20 rounded-full px-4 py-1 flex flex-col items-center">
+              <p className="text-xs">VET</p>
+              {loading ? (
+                <SkeletonLoader width="40px" height="1rem" className="bg-white/30" />
+              ) : (
+                <p className="font-semibold">{wallet.vetBalance}</p>
+              )}
+            </div>
+            <div className="bg-white/20 rounded-full px-4 py-1 flex flex-col items-center">
+              <p className="text-xs">B3TR</p>
+              {loading ? (
+                <SkeletonLoader width="40px" height="1rem" className="bg-white/30" />
+              ) : (
+                <p className="font-semibold">{wallet.b3trBalance}</p>
+              )}
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        {/* Send Button */}
+        <button
+          onClick={() => router.push("/send")}
+          className="mt-4 md:mt-0 ml-0 md:ml-6 p-3 bg-white text-blue-600 rounded-xl hover:bg-white/90 transition shadow-lg flex items-center justify-center"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <AiOutlineSend size={24} />
+        </button>
+      </div>
+
+      {/* Transactions List */}
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <h2 className="font-bold text-xl mb-4">Transactions</h2>
+        {loading ? (
+          <>
+            <SkeletonLoader width="100%" height="1.5rem" className="mb-3" />
+            <SkeletonLoader width="100%" height="1.5rem" className="mb-3" />
+            <SkeletonLoader width="100%" height="1.5rem" className="mb-3" />
+          </>
+        ) : transactions.length > 0 ? (
+          <ul className="space-y-2">
+            {transactions.map((tx) => (
+              <li
+                key={tx.id}
+                className="flex justify-between p-3 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+              >
+                <span className="font-medium">
+                  {tx.type} {tx.amount} {tx.token}
+                </span>
+                <span className="text-gray-500">{tx.to || tx.from}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500">No transactions yet.</p>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default Dashboard;
