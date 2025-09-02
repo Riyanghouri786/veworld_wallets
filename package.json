@@ -12,6 +12,8 @@
     "@vechain/sdk-core": "^2.0.4",
     "@vechain/sdk-network": "^2.0.4",
     "ethers": "^6.15.0",
+    "mongodb": "^6.19.0",
+    "mongoose": "^8.18.0",
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
