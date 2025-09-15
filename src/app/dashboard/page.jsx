@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { FaArrowUp, FaSyncAlt } from "react-icons/fa";
+import { FaArrowUp, FaSyncAlt, FaPaperPlane } from "react-icons/fa";
 import B3TRChart from "../components/B3TRChart";
+import VeChainExplorer from "../components/Transfer";
 
 const SkeletonLoader = ({ width = "100%", height = "1rem", className = "" }) => {
   return (
@@ -19,6 +20,7 @@ const Dashboard = () => {
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState({}); // track per-wallet refresh
+   const [explorerAddress, setExplorerAddress] = useState("");
 
   // Fetch all wallets
   useEffect(() => {
@@ -177,17 +179,26 @@ const Dashboard = () => {
               } rounded-xl p-4 shadow`}
             >
               {/* Refresh button */}
-              <button
-                className="absolute top-2 right-2 text-white hover:scale-110 transition"
-                onClick={() => handleRefresh(wallet._id, wallet.address)}
-                disabled={refreshing[wallet._id]}
-              >
-                <FaSyncAlt
-                  className={`${
-                    refreshing[wallet._id] ? "animate-spin" : ""
-                  }`}
-                />
-              </button>
+               <div className="absolute top-2 right-2 flex gap-2">
+                {/* Send button */}
+                <button
+                  className="text-white hover:scale-110 transition"
+                  onClick={() => setExplorerAddress(wallet.address)} // ✅ send address
+                >
+                  <FaPaperPlane />
+                </button>
+
+                {/* Refresh button */}
+                <button
+                  className="text-white hover:scale-110 transition"
+                  onClick={() => handleRefresh(wallet._id, wallet.address)}
+                  disabled={refreshing[wallet._id]}
+                >
+                  <FaSyncAlt
+                    className={`${refreshing[wallet._id] ? "animate-spin" : ""}`}
+                  />
+                </button>
+              </div>
 
               <p className="text-lg font-semibold">{wallet.name}</p>
               <p className="text-sm text-gray-300">{wallet.symbol}</p>
@@ -238,7 +249,9 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
+    {explorerAddress && (
+        <VeChainExplorer address={explorerAddress} />
+      )}
     </main>
   );
 };
