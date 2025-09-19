@@ -1,25 +1,39 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaSyncAlt, FaExternalLinkAlt, FaSearch } from "react-icons/fa";
 
 const VeChainExplorer = ({ address: initialAddress }) => {
   const [address, setAddress] = useState(initialAddress || "");
   const [currentUrl, setCurrentUrl] = useState(
-    `https://explore.vechain.org/accounts/${initialAddress}/transfer`
+    initialAddress
+      ? `https://explore.vechain.org/accounts/${initialAddress}/transfer`
+      : ""
   );
   const [loading, setLoading] = useState(false);
+
+  // 🔥 Update state when parent sends new address
+  useEffect(() => {
+    if (initialAddress) {
+      setAddress(initialAddress);
+      setCurrentUrl(
+        `https://explore.vechain.org/accounts/${initialAddress}/transfer`
+      );
+    }
+  }, [initialAddress]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (address.trim()) {
-      setCurrentUrl(`https://explore.vechain.org/accounts/${address.trim()}/transfer`);
+      setCurrentUrl(
+        `https://explore.vechain.org/accounts/${address.trim()}/transfer`
+      );
     }
   };
 
   const handleRefresh = () => {
     setLoading(true);
     setCurrentUrl((prev) => prev); // trigger iframe reload
-    setTimeout(() => setLoading(false), 800); // simulate reload animation
+    setTimeout(() => setLoading(false), 800);
   };
 
   return (
@@ -65,7 +79,7 @@ const VeChainExplorer = ({ address: initialAddress }) => {
       {/* Iframe */}
       <div className="flex-1">
         <iframe
-          key={currentUrl} // ensures iframe reloads when URL changes
+          key={currentUrl} // forces reload when URL changes
           src={currentUrl}
           className="w-full h-full border-0 rounded-b-xl"
           title="VeChain Explorer"

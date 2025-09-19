@@ -20,7 +20,7 @@ const Dashboard = () => {
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
   const [refreshing, setRefreshing] = useState({}); // track per-wallet refresh
-   const [explorerAddress, setExplorerAddress] = useState("");
+  const [explorerAddress, setExplorerAddress] = useState("");
 
   // Fetch all wallets
   useEffect(() => {
@@ -78,14 +78,14 @@ const Dashboard = () => {
         prev.map((w) =>
           w._id === walletId
             ? {
-                ...w,
-                balance: balData?.balance || "0.00",
-                symbol: balData?.symbol || w.symbol,
-                priceUSD: balData?.priceUSD || 0,
-                pricePKR: balData?.pricePKR || 0,
-                totalValueUSD: balData?.totalValueUSD || "0.00",
-                totalValuePKR: balData?.totalValuePKR || "0.00",
-              }
+              ...w,
+              balance: balData?.balance || "0.00",
+              symbol: balData?.symbol || w.symbol,
+              priceUSD: balData?.priceUSD || 0,
+              pricePKR: balData?.pricePKR || 0,
+              totalValueUSD: balData?.totalValueUSD || "0.00",
+              totalValuePKR: balData?.totalValuePKR || "0.00",
+            }
             : w
         )
       );
@@ -122,43 +122,63 @@ const Dashboard = () => {
   return (
     <main className="min-h-screen bg-gray-900 text-white p-6">
       {/* Balance Card */}
-      <B3TRChart/>
+      <B3TRChart />
 
-      <div className="bg-gray-800 p-5 rounded-2xl mb-6 shadow">
-        <h2 className="text-lg text-gray-300">Total Balance</h2>
-        <p className="text-3xl font-bold">
-          $
-          {wallets
-            .reduce((acc, w) => acc + Number(w.totalValueUSD || 0), 0)
-            .toFixed(2)}{" "}
-          / PKR{" "}
-          {wallets
-            .reduce((acc, w) => acc + Number(w.totalValuePKR || 0), 0)
-            .toFixed(2)}
+      <div className="bg-gray-900 p-6 mt-2 rounded-2xl mb-6 shadow-lg border border-gray-700">
+        {/* Header */}
+        <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
+          Total Balance
+        </h2>
+
+        {/* Balance */}
+        <div className="mt-2">
+          <p className="text-4xl font-extrabold text-white flex items-baseline gap-2">
+            <span className="bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
+              $
+              {wallets
+                .reduce((acc, w) => acc + Number(w.totalValueUSD || 0), 0)
+                .toFixed(2)}
+            </span>
+            <span className="text-lg text-gray-400">
+              / PKR{" "}
+              {wallets
+                .reduce((acc, w) => acc + Number(w.totalValuePKR || 0), 0)
+                .toFixed(2)}
+            </span>
+          </p>
+        </div>
+
+        {/* Growth */}
+        <p className="text-green-400 flex items-center gap-1 text-sm mt-3">
+          <FaArrowUp className="animate-bounce" /> +5.24%
         </p>
-        <p className="text-green-400 flex items-center gap-1 text-sm">
-          <FaArrowUp /> 5.24%
-        </p>
-        <div className="flex gap-2 mt-4">
+
+        {/* Actions */}
+        <div className="flex gap-3 mt-5">
           <button
-            className="bg-gray-700 px-3 py-2 rounded-lg"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-green-500/30 transition"
             onClick={() => setShowModal(true)}
           >
-            + Add Wallet
+            <span className="text-lg">＋</span> Add Wallet
+          </button>
+          <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-gray-300 font-medium transition">
+            View Details
           </button>
         </div>
       </div>
 
+
       {/* Wallets */}
-      <h3 className="text-lg mb-3">Wallets</h3>
+      <h3 className="text-lg font-bold text-gray-200 mb-4">My Wallets</h3>
+
       {loading ? (
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
           {Array(4)
             .fill(0)
             .map((_, i) => (
               <div
                 key={i}
-                className="bg-gray-800 rounded-xl p-4 shadow flex flex-col gap-3"
+                className="bg-gray-800/70 rounded-2xl p-5 shadow-md flex flex-col gap-3 animate-pulse"
               >
                 <SkeletonLoader width="60%" height="1.2rem" />
                 <SkeletonLoader width="40%" height="1rem" />
@@ -168,88 +188,106 @@ const Dashboard = () => {
             ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
           {wallets.map((wallet, i) => (
             <div
               key={wallet._id}
-              className={`relative ${
-                ["bg-blue-600", "bg-purple-700", "bg-teal-600", "bg-yellow-700"][
-                  i % 4
-                ]
-              } rounded-xl p-4 shadow`}
+              className={`relative overflow-hidden rounded-2xl p-5 shadow-lg transition hover:scale-[1.02] hover:shadow-2xl group
+          ${[
+                  "bg-gradient-to-r from-blue-500 to-blue-700",
+                  "bg-gradient-to-r from-purple-600 to-indigo-700",
+                  "bg-gradient-to-r from-teal-500 to-emerald-700",
+                  "bg-gradient-to-r from-yellow-500 to-amber-600",
+                ][i % 4]
+                }`}
             >
-              {/* Refresh button */}
-               <div className="absolute top-2 right-2 flex gap-2">
-                {/* Send button */}
+              {/* Floating action buttons */}
+              <div className="absolute top-3 right-3 flex gap-2">
                 <button
-                  className="text-white hover:scale-110 transition"
-                  onClick={() => setExplorerAddress(wallet.address)} // ✅ send address
+                  className="bg-black/30 hover:bg-black/50 p-2 rounded-full text-white transition"
+                  onClick={() => setExplorerAddress(wallet.address)}
                 >
-                  <FaPaperPlane />
+                  <FaPaperPlane size={14} />
                 </button>
-
-                {/* Refresh button */}
                 <button
-                  className="text-white hover:scale-110 transition"
+                  className="bg-black/30 hover:bg-black/50 p-2 rounded-full text-white transition"
                   onClick={() => handleRefresh(wallet._id, wallet.address)}
                   disabled={refreshing[wallet._id]}
                 >
                   <FaSyncAlt
+                    size={14}
                     className={`${refreshing[wallet._id] ? "animate-spin" : ""}`}
                   />
                 </button>
               </div>
 
-              <p className="text-lg font-semibold">{wallet.name}</p>
-              <p className="text-sm text-gray-300">{wallet.symbol}</p>
-              <p className="text-2xl font-bold">
+              {/* Wallet Info */}
+              <p className="text-lg font-semibold text-white">
+                {wallet.name}
+              </p>
+              <p className="text-sm text-gray-200">{wallet.symbol}</p>
+
+              {/* Balance */}
+              <p className="text-3xl font-bold mt-2 text-white drop-shadow-sm">
                 {wallet.balance} {wallet.symbol}
               </p>
-              <p className="text-md font-semibold text-green-300">
-                ${wallet.totalValueUSD} USD / ₨{wallet.totalValuePKR} PKR
+
+              {/* Value */}
+              <p className="text-md font-semibold mt-1">
+                <span className="text-green-100">${wallet.totalValueUSD} USD</span>
+                <span className="text-gray-200"> / ₨{wallet.totalValuePKR} PKR</span>
               </p>
             </div>
           ))}
         </div>
       )}
 
+
       {/* Modal for Add Wallet */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-xl w-96 shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Add Wallet</h2>
-            <input
-              type="text"
-              placeholder="Wallet Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full p-2 rounded mb-3 bg-gray-700 text-white outline-none"
-            />
-            <input
-              type="text"
-              placeholder="Wallet Address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full p-2 rounded mb-3 bg-gray-700 text-white outline-none"
-            />
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-gray-900 p-6 rounded-2xl w-[95%] sm:w-[400px] shadow-2xl border border-gray-700 transform transition-all scale-100">
+            <h2 className="text-xl font-bold mb-5 text-white flex items-center gap-2">
+              <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Add Wallet
+            </h2>
+
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Wallet Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-gray-800 text-gray-100 placeholder-gray-400 outline-none border border-gray-700 focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
+              />
+              <input
+                type="text"
+                placeholder="Wallet Address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-gray-800 text-gray-100 placeholder-gray-400 outline-none border border-gray-700 focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
               <button
-                className="bg-gray-600 px-4 py-2 rounded-lg"
+                className="px-4 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               <button
-                className="bg-green-600 px-4 py-2 rounded-lg"
+                className="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-green-500/30 transition"
                 onClick={handleAddWallet}
               >
-                Add
+                + Add Wallet
               </button>
             </div>
           </div>
         </div>
+
       )}
-    {explorerAddress && (
+      {explorerAddress && (
         <VeChainExplorer address={explorerAddress} />
       )}
     </main>

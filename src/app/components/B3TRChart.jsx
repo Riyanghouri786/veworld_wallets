@@ -7,11 +7,16 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
 } from "recharts";
 
 const B3TRChart = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  // 👉 Current USD to PKR conversion rate (you can fetch dynamically if needed)
+  const usdToPkr = 285; // Example rate: 1 USD = 280 PKR
 
   const fetchPriceData = async () => {
     try {
@@ -30,6 +35,7 @@ const B3TRChart = () => {
           price: p[1],
         }));
         setData(formatted);
+        setLastUpdated(new Date().toLocaleTimeString());
       } else {
         console.error("Unexpected data format from CoinGecko:", json);
       }
@@ -42,37 +48,92 @@ const B3TRChart = () => {
 
   useEffect(() => {
     fetchPriceData();
+    const interval = setInterval(fetchPriceData, 30000); // refresh every 30s
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="bg-gray-800 p-4 rounded-xl shadow mb-4 w-full">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base sm:text-lg font-bold">B3TR Price (24h)</h2>
-        <button
-          onClick={fetchPriceData}
-          disabled={loading}
-          className="bg-gray-700 hover:bg-gray-600 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm"
-        >
-          {loading ? "Refreshing..." : "↻ Refresh"}
-        </button>
+    <div className="bg-gray-900 border border-gray-700 p-5 rounded-2xl shadow-lg w-full">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg sm:text-xl font-bold text-green-400">
+          B3TR Price (24h)
+        </h2>
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <span className="text-xs text-gray-400 hidden sm:block">
+              Updated: {lastUpdated}
+            </span>
+          )}
+          <button
+            onClick={fetchPriceData}
+            disabled={loading}
+            className="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "↻ Refresh"}
+          </button>
+        </div>
       </div>
 
       {data.length > 0 ? (
-        <div className="h-60 sm:h-72 md:h-80 w-full">
+        <div className="h-64 sm:h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <XAxis dataKey="time" tick={{ fill: "#aaa", fontSize: 10 }} />
-              <YAxis
-                tick={{ fill: "#aaa", fontSize: 10 }}
-                domain={["auto", "auto"]}
+              {/* Grid */}
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+
+              {/* Axis */}
+              <XAxis
+                dataKey="time"
+                tick={{ fill: "#9CA3AF", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
               />
-              <Tooltip />
+              <YAxis
+                tick={{ fill: "#9CA3AF", fontSize: 11 }}
+                domain={["auto", "auto"]}
+                axisLine={false}
+                tickLine={false}
+              />
+
+              {/* Custom Tooltip */}
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#111827",
+                  border: "1px solid #374151",
+                  borderRadius: "8px",
+                  color: "#fff",
+                }}
+                formatter={(value) => [
+                  <>
+                    <div className="text-sm">
+                      <span className="font-semibold text-green-400">
+                        ${value.toFixed(5)} USDT
+                      </span>
+                      <br />
+                      <span className="text-gray-300">
+                        {(value * usdToPkr).toFixed(2)} PKR
+                      </span>
+                    </div>
+                  </>,
+                  "Price",
+                ]}
+              />
+
+              {/* Gradient Line */}
+              <defs>
+                <linearGradient id="lineColor" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22c55e" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#22c55e" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+
               <Line
                 type="monotone"
                 dataKey="price"
-                stroke="#22c55e"
-                strokeWidth={2}
+                stroke="url(#lineColor)"
+                strokeWidth={2.5}
                 dot={false}
+                isAnimationActive={true}
               />
             </LineChart>
           </ResponsiveContainer>
