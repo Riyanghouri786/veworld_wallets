@@ -8,6 +8,7 @@ const WalletSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true, // ensures always stored in lowercase
+
     },
     mnemonic: {
       type: String,
@@ -31,4 +32,4 @@ const WalletSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Wallet || mongoose.model("Wallet", WalletSchema);
+export default mongoose.models.vtho_wallet || mongoose.model("vtho_wallet", WalletSchema);

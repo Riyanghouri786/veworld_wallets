@@ -18,7 +18,7 @@ export async function GET() {
         id: w._id,
         name: w.name,
         address: w.address,
-        privateKey: w.privateKey, // 👈 included now
+        mnemonic: w.mnemonic,
         deleted: w.deleted,
       })),
     });
